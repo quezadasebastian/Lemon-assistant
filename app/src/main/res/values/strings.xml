@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Lemon Asistente A11y</string>
+    <string name="accessibility_service_description">Asistente de transferencias accesibles para Lemon Cash. Permite la navegación autónoma para personas con discapacidad visual y protege los pagos con confirmación física por botones de volumen.</string>
+</resources>

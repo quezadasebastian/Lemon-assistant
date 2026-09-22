@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.LemonAssistant" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/dark_surface</item>
+        <item name="android:navigationBarColor">@color/dark_surface</item>
+    </style>
+</resources>

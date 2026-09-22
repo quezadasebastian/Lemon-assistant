@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maqueta Paper Prototyping - Lemon Asistente A11y</title>
+  <style>
+    /* ==========================================================================
+       RESET Y ESTILOS GLOBALES - PAPER PROTOTYPING LOW-FIDELITY WIREFRAME
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-white: #ffffff;
+      --bg-canvas: #f4f5f7;
+      --border-dark: #1e1e1e;
+      --border-medium: #666666;
+      --border-light: #cccccc;
+      --border-dashed: #555555;
+      --text-dark: #111111;
+      --text-muted: #555555;
+      --text-light: #777777;
+      --paper-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --sketch-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --mono-font: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      font-family: var(--sketch-font);
+      color: var(--text-dark);
+      padding: 20px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* BARRA DE HERRAMIENTAS DEL FACILITADOR */
+    .facilitator-bar {
+      max-width: 1300px;
+      margin: 0 auto 24px auto;
+      background: #ffffff;
+      border: 2px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 16px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: var(--paper-shadow);
+    }
+
+    .facilitator-bar h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .facilitator-bar .badge {
+      font-family: var(--mono-font);
+      font-size: 11px;
+      background: #eee;
+      border: 1px solid var(--border-medium);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .facilitator-bar .actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-action {
+      background: #ffffff;
+      border: 2px solid var(--border-dark);
+      font-family: var(--sketch-font);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-action:hover {
+      background: #000000;
+      color: #ffffff;
+    }
+
+    .btn-primary-print {
+      background: #111111;
+      color: #ffffff;
+    }
+
+    .btn-primary-print:hover {
+      background: #333333;
+    }
+
+    /* INSTRUCCIONES DE PROTOCOLO DE EVALUACIÓN */
+    .protocol-card {
+      max-width: 1300px;
+      margin: 0 auto 28px auto;
+      background: #ffffff;
+      border: 2px dashed var(--border-medium);
+      border-radius: 8px;
+      padding: 18px 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .protocol-card h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .protocol-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .protocol-item {
+      background: #fafafa;
+      border: 1px solid var(--border-light);
+      padding: 10px 14px;
+      border-radius: 6px;
+    }
+
+    .protocol-item strong {
+      display: block;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+
+    /* CONTENEDOR DE PÁGINAS A4 PARA IMPRESIÓN */
+    .a4-landscape-page {
+      max-width: 1300px;
+      margin: 0 auto 36px auto;
+      background: var(--bg-white);
+      border: 2px solid var(--border-dark);
+      padding: 24px;
+      border-radius: 8px;
+      box-shadow: var(--paper-shadow);
+      position: relative;
+    }
+
+    .page-header-strip {
+      border-bottom: 2px solid var(--border-dark);
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .page-header-strip .flow-title {
+      font-size: 18px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .page-header-strip .page-number {
+      font-family: var(--mono-font);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    /* GRID DE PANTALLAS EN LA HOJA */
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .screens-grid.two-cols {
+      grid-template-columns: repeat(2, 1fr);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* COLUMNA DE PANTALLA INDIVIDUAL */
+    .screen-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* CHIP DE RÓTULO SUPERIOR */
+    .screen-badge-label {
+      background: #ffffff;
+      border: 2px solid var(--border-dark);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      text-align: center;
+      font-family: var(--mono-font);
+      background: #fdfdfd;
+      box-shadow: 2px 2px 0px #000;
+    }
+
+    /* MARCO DEL SMARTPHONE (PROPORCIÓN ~360x740) */
+    .phone-frame {
+      width: 100%;
+      height: 640px;
+      border: 2.5px solid var(--border-dark);
+      border-radius: 28px;
+      background: #ffffff;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 4px 4px 0px rgba(0,0,0,0.15);
+    }
+
+    /* BOTONES FÍSICOS EXTERNOS (HARDWARE EN MARGEN IZQUIERDO/DERECHO) */
+    .hardware-btn-vol-up {
+      position: absolute;
+      left: -9px;
+      top: 140px;
+      width: 7px;
+      height: 54px;
+      background: #000000;
+      border-radius: 4px 0 0 4px;
+    }
+
+    .hardware-btn-vol-down {
+      position: absolute;
+      left: -9px;
+      top: 205px;
+      width: 7px;
+      height: 54px;
+      background: #000000;
+      border-radius: 4px 0 0 4px;
+    }
+
+    .hardware-btn-power {
+      position: absolute;
+      right: -9px;
+      top: 160px;
+      width: 7px;
+      height: 48px;
+      background: #000000;
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* CALLOUT BOTONES FÍSICOS */
+    .hardware-callout {
+      position: absolute;
+      left: 12px;
+      top: 135px;
+      z-index: 20;
+      background: #fff;
+      border: 1.5px solid #000;
+      padding: 3px 6px;
+      font-size: 9px;
+      font-weight: 800;
+      font-family: var(--mono-font);
+      box-shadow: 2px 2px 0 #000;
+      pointer-events: none;
+    }
+
+    /* BARRA DE ESTADO */
+    .status-bar {
+      height: 32px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--mono-font);
+      flex-shrink: 0;
+    }
+
+    .status-bar .icons {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* APP BAR MÍNIMA */
+    .app-header {
+      padding: 10px 14px;
+      border-bottom: 1.5px solid var(--border-dark);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fafafa;
+      flex-shrink: 0;
+    }
+
+    .app-header .title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+    }
+
+    .app-header .action-icon {
+      width: 24px;
+      height: 24px;
+      border: 1.5px solid var(--border-dark);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    /* CONTENIDO INTERNO DE LA PANTALLA */
+    .screen-content {
+      flex: 1;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: hidden;
+      background: #ffffff;
+      position: relative;
+    }
+
+    /* ELEMENTOS DE BOCETO UI (WIREFRAME COMPONENTS) */
+    .sketch-card {
+      border: 1.5px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 12px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sketch-card.highlight {
+      background: #fbfbfb;
+      border: 2px solid var(--border-dark);
+    }
+
+    .sketch-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .sketch-pill {
+      font-size: 10px;
+      font-family: var(--mono-font);
+      border: 1px solid var(--border-dark);
+      padding: 2px 6px;
+      border-radius: 12px;
+      font-weight: 700;
+    }
+
+    .sketch-pill.active {
+      background: #111;
+      color: #fff;
+    }
+
+    .sketch-pill.warning {
+      background: #eee;
+      border: 1.5px dashed #111;
+    }
+
+    /* ÁREAS PUNTEADAS PARA DISPARADORES TÁCTILES O POR VOZ */
+    .tap-zone {
+      border: 2px dashed var(--border-dark);
+      background: #fafafa;
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .tap-zone::after {
+      content: "👆 TAP";
+      position: absolute;
+      right: 6px;
+      bottom: 2px;
+      font-size: 8px;
+      font-family: var(--mono-font);
+      color: var(--text-light);
+    }
+
+    .voice-trigger-zone {
+      border: 2px dashed #000;
+      background: #f7f7f7;
+      border-radius: 10px;
+      padding: 14px 12px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+    }
+
+    .voice-trigger-zone::after {
+      content: "🎙️ COMANDO DE VOZ";
+      font-size: 8px;
+      font-family: var(--mono-font);
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    /* CAMPOS DE TEXTO TIPO SKETCH */
+    .sketch-input {
+      border: 1.5px solid var(--border-medium);
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: #ffffff;
+      font-family: var(--mono-font);
+      font-size: 12px;
+      color: var(--text-dark);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sketch-input .label {
+      font-size: 9px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* TECLADO NUMÉRICO TOPOLÓGICO DE LEMON */
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1.5px solid var(--border-light);
+    }
+
+    .keypad-key {
+      height: 38px;
+      border: 1.5px solid var(--border-dark);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--mono-font);
+      background: #fff;
+    }
+
+    .keypad-key.pressed {
+      background: #000;
+      color: #fff;
+    }
+
+    /* SIMULADORES DE FEEDBACK AUDITIVO / HÁPTICO */
+    .a11y-bubble {
+      background: #f0f0f0;
+      border-left: 3px solid #000000;
+      padding: 6px 8px;
+      font-size: 10px;
+      font-style: italic;
+      color: #222;
+      border-radius: 0 4px 4px 0;
+      margin: 4px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 5px;
+    }
+
+    .haptic-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #ffffff;
+      border: 1px dotted #000;
+      padding: 2px 6px;
+      font-size: 9px;
+      font-family: var(--mono-font);
+      border-radius: 3px;
+      margin-top: 2px;
+    }
+
+    /* BARRA DE NAVEGACIÓN INFERIOR */
+    .bottom-nav {
+      height: 48px;
+      border-top: 1.5px solid var(--border-dark);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: #fafafa;
+      flex-shrink: 0;
+    }
+
+    .nav-item {
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      color: var(--text-muted);
+    }
+
+    .nav-item.active {
+      color: #000;
+      font-weight: 800;
+    }
+
+    .nav-indicator {
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid currentColor;
+      border-radius: 3px;
+    }
+
+    /* TARJETA INFERIOR DE ACCIÓN / TRANSICIÓN / DINÁMICOS */
+    .eval-card {
+      background: #ffffff;
+      border: 2px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 11px;
+      box-shadow: 2px 2px 0px #000000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .eval-card-header {
+      font-weight: 800;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .eval-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .eval-row .label {
+      font-weight: 700;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .eval-row .value {
+      color: var(--text-muted);
+      font-family: var(--sketch-font);
+      padding-left: 14px;
+    }
+
+    .eval-row .value code {
+      font-family: var(--mono-font);
+      background: #f0f0f0;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 10.5px;
+      color: #000;
+    }
+
+    /* SECCIÓN DE PIEZAS RECORTABLES / CUTOUT OVERLAYS */
+    .cutout-sheet-container {
+      margin-top: 30px;
+    }
+
+    .cutout-item-box {
+      border: 2px dashed #333333;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 16px;
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .scissor-label {
+      position: absolute;
+      top: -11px;
+      left: 20px;
+      background: #ffffff;
+      padding: 0 8px;
+      font-family: var(--mono-font);
+      font-size: 10px;
+      font-weight: 700;
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .holding-tab {
+      background: #eeeeee;
+      border: 1.5px dashed #444;
+      padding: 4px 8px;
+      font-size: 9px;
+      font-family: var(--mono-font);
+      text-align: center;
+      margin-bottom: 8px;
+      border-radius: 4px;
+    }
+
+    /* OVERLAYS ESPECÍFICOS RECORTABLES */
+    .modal-cutout {
+      border: 2px solid #000;
+      border-radius: 16px;
+      background: #fff;
+      padding: 16px;
+      box-shadow: 6px 6px 0px rgba(0,0,0,0.25);
+    }
+
+    .bottom-sheet-cutout {
+      border: 2.5px solid #000;
+      border-radius: 20px 20px 0 0;
+      background: #fff;
+      padding: 18px;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+    }
+
+    .toast-cutout {
+      border: 2px solid #000;
+      border-radius: 30px;
+      background: #111;
+      color: #fff;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* ESTILOS PARA IMPRESIÓN DIRECTA EN HOJAS A4 */
+    @media print {
+      body {
+        background: #ffffff !important;
+        padding: 0 !important;
+      }
+
+      .facilitator-bar,
+      .protocol-card,
+      .no-print {
+        display: none !important;
+      }
+
+      .a4-landscape-page {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 10mm !important;
+        border: none !important;
+        box-shadow: none !important;
+        page-break-after: always;
+        break-after: page;
+        height: 100vh;
+        box-sizing: border-box;
+      }
+
+      .screens-grid {
+        gap: 12mm !important;
+      }
+
+      .phone-frame {
+        height: 175mm !important; /* Calibrado para hoja A4 horizontal */
+        box-shadow: none !important;
+        border: 2px solid #000 !important;
+      }
+
+      .eval-card {
+        box-shadow: none !important;
+        border: 1.5px solid #000 !important;
+      }
+
+      @page {
+        size: A4 landscape;
+        margin: 8mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       BARRA DE CONTROL DEL FACILITADOR (NO IMPRESA)
+       ========================================================================== -->
+  <header class="facilitator-bar">
+    <div>
+      <h1>
+        <span>📋 Lemon Asistente A11y</span>
+        <span class="badge">PROTOTIPO EN PAPEL (A4 GRID)</span>
+      </h1>
+      <p style="font-size: 12px; color: #555; margin-top: 4px;">
+        Kit de maquetas Wireframe / Sketch listo para imprimir, recortar superposiciones y evaluar con usuarios con discapacidad visual o motriz.
+      </p>
+    </div>
+    <div class="actions">
+      <button class="btn-action" onclick="window.scrollTo({top: document.getElementById('cutouts-section').offsetTop - 20, behavior: 'smooth'})">
+        ✂️ Ver Piezas Recortables
+      </button>
+      <button class="btn-action btn-primary-print" onclick="window.print()">
+        🖨️ Imprimir Todo en A4 (Horizontal)
+      </button>
+    </div>
+  </header>
+
+  <!-- PROTOCOLO DE EVALUACIÓN CON USUARIOS -->
+  <section class="protocol-card">
+    <h2>🎯 Protocolo para el Evaluador / Facilitador (Human-in-the-Loop Testing)</h2>
+    <div class="protocol-grid">
+      <div class="protocol-item">
+        <strong>1. Rol del "Mago de Oz" (Facilitador TTS)</strong>
+        Lee en voz alta las líneas <code>🔊 Locución TTS</code> con cadencia pausada (simulando 0.92x) tan pronto como el usuario realice el disparador táctil o vocal.
+      </div>
+      <div class="protocol-item">
+        <strong>2. Superposiciones Recortables (Cutouts)</strong>
+        Usa las piezas de la sección final recortadas. Coloca el overlay de "Escucha Activa" o "Confirmación por Volumen" encima del smartphone cuando se active el estado.
+      </div>
+      <div class="protocol-item">
+        <strong>3. Simulación de Hardware (Botones Físicos)</strong>
+        Toca el lateral del teléfono impreso. Indica al usuario que presione dos veces seguidas "Subir Volumen" para verificar el Safety Gate 3 contra transferencias erróneas.
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       HOJA 1: ONBOARDING Y CONFIGURACIÓN INICIAL (SCR-01, SCR-02, SCR-03)
+       ========================================================================== -->
+  <article class="a4-landscape-page" id="sheet-1">
+    <div class="page-header-strip">
+      <span class="flow-title">Flujo 1: Primer Inicio / Onboarding Asistido</span>
+      <span class="page-number">HOJA 01 / 05 • FORMATO A4 HORIZONTAL</span>
+    </div>
+
+    <div class="screens-grid">
+      <!-- PANTALLA 1 -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-01] BIENVENIDA & VALOR</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 98%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Lemon Asistente A11y</span>
+            <span class="sketch-pill active">v1.0</span>
+          </div>
+          <div class="screen-content">
+            <div style="text-align: center; padding: 14px 6px;">
+              <div style="font-size: 38px; margin-bottom: 6px;">🍋🗣️</div>
+              <h3 style="font-size: 16px; font-weight: 800;">Transferencias con Autonomía</h3>
+              <p style="font-size: 11px; color: #555; margin-top: 4px;">
+                Asistente de pagos inclusivo por voz y hardware para personas con discapacidad visual.
+              </p>
+            </div>
+
+            <div class="sketch-card highlight">
+              <div style="font-size: 11px; font-weight: 800;">🛡️ Tres Pilares de Accesibilidad:</div>
+              <ul style="font-size: 10px; color: #444; padding-left: 16px; display: flex; flex-direction: column; gap: 4px;">
+                <li><strong>Control por Voz:</strong> Di monto y teléfono sin mirar la pantalla.</li>
+                <li><strong>Autonomía en Lemon Cash:</strong> Navega e ingresa datos automáticamente.</li>
+                <li><strong>Seguridad Física:</strong> Autoriza únicamente con botones de volumen.</li>
+              </ul>
+            </div>
+
+            <div class="a11y-bubble">
+              🔊 <em>"Bienvenido a Lemon Asistente Accesible. Tu asistente seguro para pagos."</em>
+            </div>
+
+            <div style="margin-top: auto;">
+              <div class="tap-zone" style="height: 48px; border-width: 2px;">
+                <strong>Comenzar Configuración Guiada ▶</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-01</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value">Tap en cualquier parte del botón <code>Comenzar Configuración</code> o comando de voz <code>"Comenzar"</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Avanza a pantalla <code>[SCR-02] Permisos Críticos</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Foco de accesibilidad en botón primario. Locución inicial de bienvenida automática.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANTALLA 2 -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-02] SOLICITUD DE PERMISOS</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 98%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Permisos Requeridos</span>
+            <span class="sketch-pill warning">Paso 1 de 2</span>
+          </div>
+          <div class="screen-content">
+            <p style="font-size: 11px; color: #444;">
+              Para automatizar transferencias seguras, se requieren 2 permisos esenciales del sistema:
+            </p>
+
+            <!-- Permiso Micrófono -->
+            <div class="sketch-card">
+              <div class="sketch-card-header">
+                <span>🎤 1. Grabación de Audio</span>
+                <span class="sketch-pill active">CONCEDIDO</span>
+              </div>
+              <p style="font-size: 10px; color: #555;">Permite capturar comandos de voz offline (monto y celular).</p>
+            </div>
+
+            <!-- Permiso Accesibilidad -->
+            <div class="sketch-card highlight">
+              <div class="sketch-card-header">
+                <span>♿ 2. Servicio Accesibilidad</span>
+                <span class="sketch-pill warning">PENDIENTE</span>
+              </div>
+              <p style="font-size: 10px; color: #555;">
+                Permite interactuar con la app Lemon Cash e interceptar teclas de volumen para confirmación física.
+              </p>
+              <div class="tap-zone" style="padding: 8px; margin-top: 4px;">
+                <strong>Abrir Ajustes de Accesibilidad ⚙️</strong>
+              </div>
+            </div>
+
+            <div class="a11y-bubble">
+              🔊 <em>"Es indispensable activar Lemon Asistente en los Ajustes de Accesibilidad de tu teléfono."</em>
+            </div>
+
+            <div style="margin-top: auto;">
+              <div class="tap-zone" style="height: 44px; opacity: 0.85;">
+                <span>Continuar tras activar ▶</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-02</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value">Tap en <code>Abrir Ajustes</code>. Usuario concede permiso en ajustes del sistema y regresa.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Avanza a <code>[SCR-03] Configuración Inicial de PIN</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Pill cambia de <code>PENDIENTE</code> a <code>ACTIVO</code>. Lectura TTS inmediata de confirmación.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANTALLA 3 -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-03] CONFIGURACIÓN DE PIN</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 98%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Seguridad Cifrada</span>
+            <span class="sketch-pill warning">Paso 2 de 2</span>
+          </div>
+          <div class="screen-content">
+            <p style="font-size: 11px; color: #444;">
+              Guarda tu PIN de Lemon Cash de 6 dígitos. Se cifrará en el Keystore del dispositivo (AES-256 GCM).
+            </p>
+
+            <div class="sketch-card">
+              <span style="font-size: 10px; font-weight: 800; color: #666;">PIN DE LEMON CASH</span>
+              <div class="sketch-input" style="font-size: 16px; letter-spacing: 6px; justify-content: center;">
+                <span>● ● ● ● ● ●</span>
+              </div>
+              <span style="font-size: 9px; color: #666; text-align: center;">6 dígitos numéricos guardados</span>
+              <div class="tap-zone" style="padding: 6px;">
+                <strong>Guardar PIN Cifrado 🔐</strong>
+              </div>
+            </div>
+
+            <div class="sketch-card">
+              <div class="sketch-card-header">
+                <span>🔊 Prueba de Audio y Háptica</span>
+              </div>
+              <p style="font-size: 9.5px; color: #555;">
+                Verifica que escuchas el TTS inclusivo y sientes la vibración háptica al presionar volumen.
+              </p>
+              <div class="haptic-tag">📳 Patrón: Doble pulso 150ms / 250ms</div>
+            </div>
+
+            <div class="a11y-bubble">
+              🔊 <em>"PIN guardado con éxito en el almacenamiento cifrado seguro."</em>
+            </div>
+
+            <div style="margin-top: auto;">
+              <div class="tap-zone" style="height: 48px; border-width: 2px;">
+                <strong>Finalizar e Ir al Dashboard ▶</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-03</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value">Ingreso de PIN numérico de 6 dígitos + Tap en <code>Guardar PIN Cifrado</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Avanza a <code>[SCR-04] Dashboard Principal (Reposo)</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Persistencia en <code>EncryptedSharedPreferences</code>. Emisión de feedback háptico corto.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ==========================================================================
+       HOJA 2: ESTADO DE REPOSO Y DISPARO POR VOZ (SCR-04, SCR-05, SCR-06)
+       ========================================================================== -->
+  <article class="a4-landscape-page" id="sheet-2">
+    <div class="page-header-strip">
+      <span class="flow-title">Flujo 2: Estado de Reposo & Captura de Intención por Voz</span>
+      <span class="page-number">HOJA 02 / 05 • FORMATO A4 HORIZONTAL</span>
+    </div>
+
+    <div class="screens-grid">
+      <!-- PANTALLA 4 -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-04] DASHBOARD (REPOSO)</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 98%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Lemon Asistente A11y</span>
+            <span class="sketch-pill active">LISTO</span>
+          </div>
+          <div class="screen-content">
+            <!-- Estado del Servicio -->
+            <div class="sketch-card highlight">
+              <div class="sketch-card-header">
+                <span>✓ Servicio Accesibilidad</span>
+                <span class="sketch-pill active">ACTIVO</span>
+              </div>
+              <p style="font-size: 10px; color: #444;">Listo para operar en sincronía con Lemon Cash.</p>
+            </div>
+
+            <!-- Botón Gigante Disparador de Voz -->
+            <div class="voice-trigger-zone" style="padding: 24px 12px; margin: 4px 0;">
+              <div style="font-size: 40px;">🎤</div>
+              <div style="font-size: 14px; font-weight: 900;">Iniciar Transferencia por Voz</div>
+              <span style="font-size: 10px; color: #555;">(O mantén presionado botón Subir Volumen)</span>
+            </div>
+
+            <!-- Acceso Rápido de Prueba -->
+            <div class="sketch-card">
+              <span style="font-size: 10.5px; font-weight: 800;">Prueba Rápida Determinista:</span>
+              <div class="sketch-input">
+                <span>Destino: 993714209 (Yape)</span>
+              </div>
+              <div class="sketch-input">
+                <span>Monto: S/ 20.00</span>
+              </div>
+              <div class="tap-zone" style="padding: 6px;">
+                <span>Ejecutar Prueba Directa ▶</span>
+              </div>
+            </div>
+
+            <!-- Recordatorio Físico -->
+            <div style="border: 1px solid #ccc; padding: 6px 8px; border-radius: 6px; font-size: 9px; color: #555;">
+              ℹ️ <strong>Botones Físicos:</strong> En confirmación final, Vol Up (x2) autoriza; Vol Down (x1) cancela.
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item active"><div class="nav-indicator"></div>Inicio</div>
+            <div class="nav-item"><div class="nav-indicator"></div>Historial</div>
+            <div class="nav-item"><div class="nav-indicator"></div>Ajustes</div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-04</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value">Tap en el botón central <code>🎤 Iniciar Transferencia por Voz</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Avanza a <code>[SCR-05] Escucha Activa & Extracción</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Inicialización de <code>SpeechRecognizer</code> en segundo plano. Sonido de escucha "beep".</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANTALLA 5 -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-05] ESCUCHA ACTIVA & RECONOCIMIENTO</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 98%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Escuchando comando...</span>
+            <span class="sketch-pill active">REC 🔴</span>
+          </div>
+          <div class="screen-content">
+            <div style="text-align: center; margin: 16px 0;">
+              <!-- Onda de voz estilo boceto -->
+              <div style="font-family: var(--mono-font); font-size: 22px; letter-spacing: 4px; font-weight: 800;">
+                  ▂ ▃ ▅ ▇ ▅ ▃ ▂  
+              </div>
+              <div style="font-size: 11px; color: #666; margin-top: 6px;">
+                "Habla con naturalidad..."
+              </div>
+            </div>
+
+            <!-- Transcripción en vivo -->
+            <div class="sketch-card highlight" style="border-width: 2px;">
+              <span style="font-size: 10px; font-weight: 800; color: #666;">TRANSCRIPCIÓN EN TIEMPO REAL:</span>
+              <p style="font-size: 13px; font-weight: 700; color: #000; font-family: var(--mono-font);">
+                "Enviar veinte soles al 993 714 209 por Yape"
+              </p>
+            </div>
+
+            <!-- Extracción de Entidades Regex/NLP -->
+            <div class="sketch-card">
+              <span style="font-size: 10px; font-weight: 800; color: #666;">ENTIDADES DETECTADAS:</span>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px; font-family: var(--mono-font);">
+                <div>💰 Monto: <strong>S/ 20.00</strong></div>
+                <div>📱 Destino: <strong>993714209</strong></div>
+                <div>🏦 Red: <strong>YAPE</strong></div>
+                <div>💱 Moneda: <strong>Soles</strong></div>
+              </div>
+            </div>
+
+            <div class="a11y-bubble">
+              🔊 <em>"Entendido. Enviar 20 soles al 9 9 3, 7 1 4, 2 0 9. Abriendo Lemon Cash."</em>
+            </div>
+
+            <div class="haptic-tag" style="margin-top: auto;">
+              📳 Haptic: Confirmación táctil simple (60ms)
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item active"><div class="nav-indicator"></div>Escuchando...</div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-05</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value">Usuario pronuncia: <code>"Enviar veinte soles al 993 714 209 por Yape"</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">El motor procesa y abre Lemon Cash: <code>[SCR-06] Login Autónomo</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Extracción de parámetros vía <code>VoiceCommandEngine</code>. TTS emite confirmación verbal.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANTALLA 6 -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-06] AUTENTICACIÓN AUTÓNOMA (LEMON)</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 98%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Lemon Cash</span>
+            <span class="sketch-pill active">A11y Activo</span>
+          </div>
+          <div class="screen-content">
+            <div style="text-align: center; padding: 10px 0;">
+              <div style="font-size: 26px;">🍋</div>
+              <h3 style="font-size: 14px; font-weight: 800;">Ingresa tu clave de acceso</h3>
+              <p style="font-size: 10px; color: #555;">6 dígitos de seguridad</p>
+            </div>
+
+            <!-- Indicadores de PIN llenándose -->
+            <div style="display: flex; justify-content: center; gap: 10px; margin: 8px 0;">
+              <span style="width: 14px; height: 14px; border-radius: 50%; background: #000;"></span>
+              <span style="width: 14px; height: 14px; border-radius: 50%; background: #000;"></span>
+              <span style="width: 14px; height: 14px; border-radius: 50%; background: #000;"></span>
+              <span style="width: 14px; height: 14px; border-radius: 50%; background: #000;"></span>
+              <span style="width: 14px; height: 14px; border-radius: 50%; background: #000;"></span>
+              <span style="width: 14px; height: 14px; border-radius: 50%; background: #000;"></span>
+            </div>
+
+            <div class="a11y-bubble">
+              🔊 <em>"Autenticando clave de acceso en Lemon Cash de forma asistida."</em>
+            </div>
+
+            <!-- Teclado en pantalla simulando pulsación automatizada -->
+            <div class="keypad-grid">
+              <div class="keypad-key">1</div>
+              <div class="keypad-key pressed">2</div>
+              <div class="keypad-key">3</div>
+              <div class="keypad-key">4</div>
+              <div class="keypad-key">5</div>
+              <div class="keypad-key">6</div>
+              <div class="keypad-key">7</div>
+              <div class="keypad-key">8</div>
+              <div class="keypad-key">9</div>
+              <div class="keypad-key">C</div>
+              <div class="keypad-key">0</div>
+              <div class="keypad-key">⌫</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-06</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value"><code>KeypadNavigator</code> ingresa PIN cifrado con debounce de 150ms entre dígitos.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Lemon Cash autentica y carga <code>[SCR-07] Dashboard Lemon Cash</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Detección de pantalla <code>PIN_ENTRY</code> por <code>ScreenInspector</code>. Despacho de clics.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ==========================================================================
+       HOJA 3: NAVEGACIÓN PASO A PASO EN LEMON CASH (SCR-07, SCR-08, SCR-09)
+       ========================================================================== -->
+  <article class="a4-landscape-page" id="sheet-3">
+    <div class="page-header-strip">
+      <span class="flow-title">Flujo 3: Ejecución Core Paso a Paso en Lemon Cash</span>
+      <span class="page-number">HOJA 03 / 05 • FORMATO A4 HORIZONTAL</span>
+    </div>
+
+    <div class="screens-grid">
+      <!-- PANTALLA 7 -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-07] SELECCIÓN DE CANAL Y MONEDA</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 97%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">¿Qué quieres enviar?</span>
+            <span class="sketch-pill active">Lemon</span>
+          </div>
+          <div class="screen-content">
+            <!-- Saldo actual -->
+            <div class="sketch-card">
+              <span style="font-size: 10px; color: #666;">TU SALDO DISPONIBLE</span>
+              <div style="font-size: 18px; font-weight: 900; font-family: var(--mono-font);">
+                S/ 154.80
+              </div>
+            </div>
+
+            <!-- Selección de moneda asistida -->
+            <div class="tap-zone" style="border-style: solid; border-width: 2px; background: #eee; justify-content: space-between;">
+              <span>🇵🇪 Soles (PEN)</span>
+              <span class="sketch-pill active">AUTOMÁTICO</span>
+            </div>
+
+            <div style="font-size: 11px; font-weight: 800; margin-top: 4px;">Seleccioná cómo enviar:</div>
+
+            <!-- Selección canal celular -->
+            <div class="tap-zone" style="border-style: solid; border-width: 2px; background: #eee; justify-content: space-between;">
+              <span>📱 Número de teléfono</span>
+              <span class="sketch-pill active">CLICK AUTOMÁTICO</span>
+            </div>
+
+            <div class="tap-zone" style="justify-content: space-between; opacity: 0.6;">
+              <span>🏦 Cuenta bancaria (CCI)</span>
+              <span>›</span>
+            </div>
+
+            <div class="a11y-bubble">
+              🔊 <em>"Seleccionando moneda Soles y canal por número telefónico."</em>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item"><div class="nav-indicator"></div>Inicio</div>
+            <div class="nav-item active"><div class="nav-indicator"></div>Enviar</div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-07</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value"><code>A11yActionHelper</code> detecta nodos "Soles" y "Número de teléfono" y pulsa.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Avanza a <code>[SCR-08] Inyección de Destinatario</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Detección de estados <code>SelectingCurrency</code> y <code>SelectingChannel</code>.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANTALLA 8 -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-08] DESTINATARIO Y RED YAPE</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 97%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Enviar soles a celular</span>
+            <span class="sketch-pill active">Paso 2</span>
+          </div>
+          <div class="screen-content">
+            <!-- Campo de texto inyectado -->
+            <div class="sketch-card highlight">
+              <span style="font-size: 10px; font-weight: 800;">NÚMERO DE TELÉFONO</span>
+              <div class="sketch-input" style="border: 2px solid #000; font-size: 15px; font-weight: 700;">
+                <span>993 714 209</span>
+                <span>✓</span>
+              </div>
+              <div class="tap-zone" style="padding: 6px; margin-top: 4px;">
+                <strong>Buscar en Directorio Interoperable 🔍</strong>
+              </div>
+            </div>
+
+            <!-- Modal simulado de selección de banco -->
+            <div style="border: 2px solid #000; border-radius: 8px; padding: 10px; background: #fff;">
+              <div style="font-size: 11px; font-weight: 800; margin-bottom: 6px;">¿A qué cuenta enviar?</div>
+              <div class="tap-zone" style="justify-content: space-between; border-style: solid; background: #eee;">
+                <span>🟣 Yape (BCP)</span>
+                <span class="sketch-pill active">SELECCIONADO</span>
+              </div>
+              <div class="tap-zone" style="justify-content: space-between; margin-top: 4px; opacity: 0.5;">
+                <span>🍋 Lemon Cash</span>
+                <span>›</span>
+              </div>
+            </div>
+
+            <div class="a11y-bubble">
+              🔊 <em>"Ingresando número 9 9 3, 7 1 4, 2 0 9. Seleccionando red Yape."</em>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-08</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value"><code>setTextSafely("993714209")</code> + Clic en "Buscar" + Selección de red "YAPE".</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Avanza a <code>[SCR-09] Configuración de Monto</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Validación de titular en directorio bancario nacional. Consulta en segundo plano.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANTALLA 9 -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-09] INGRESO DE MONTO</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 97%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Enviar soles</span>
+            <span class="sketch-pill active">Monto</span>
+          </div>
+          <div class="screen-content">
+            <div style="text-align: center; padding: 8px 0;">
+              <span style="font-size: 11px; color: #555;">DESTINATARIO: <strong>MARCO AURELIO R.</strong></span>
+              <!-- Monto grande -->
+              <div style="font-size: 32px; font-weight: 900; font-family: var(--mono-font); margin: 6px 0;">
+                S/ 20.00
+              </div>
+              <span style="font-size: 9.5px; color: #777;">Sin comisiones • Acreditación inmediata</span>
+            </div>
+
+            <div class="a11y-bubble">
+              🔊 <em>"Ingresando monto de 20.00 soles en Lemon Cash."</em>
+            </div>
+
+            <!-- Teclado en pantalla Lemon -->
+            <div class="keypad-grid" style="margin-top: auto;">
+              <div class="keypad-key">1</div>
+              <div class="keypad-key pressed">2</div>
+              <div class="keypad-key">3</div>
+              <div class="keypad-key">4</div>
+              <div class="keypad-key">5</div>
+              <div class="keypad-key">6</div>
+              <div class="keypad-key">7</div>
+              <div class="keypad-key">8</div>
+              <div class="keypad-key">9</div>
+              <div class="keypad-key">.</div>
+              <div class="keypad-key pressed">0</div>
+              <div class="keypad-key">⌫</div>
+            </div>
+
+            <div class="tap-zone" style="height: 42px; border-style: solid; background: #eee; margin-top: 6px;">
+              <strong>Continuar a Verificación ▶</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-09</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value">Automatización digita "2", "0", ".", "0", "0" y presiona <code>Continuar</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Paso crítico al Safety Gate 3: <code>[SCR-10] Auditoría y Confirmación Física</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Transición de estado <code>ConfiguringAmount</code> a <code>AwaitingUserConfirmation</code>.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ==========================================================================
+       HOJA 4: SAFETY GATE 3 Y RESULTADO EXITOSO (SCR-10, SCR-11)
+       ========================================================================== -->
+  <article class="a4-landscape-page" id="sheet-4">
+    <div class="page-header-strip">
+      <span class="flow-title">Flujo 4: Safety Gate 3 (Confirmación por Hardware) & Comprobante</span>
+      <span class="page-number">HOJA 04 / 05 • FORMATO A4 HORIZONTAL</span>
+    </div>
+
+    <div class="screens-grid two-cols">
+      <!-- PANTALLA 10 -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-10] SAFETY GATE 3 - AUDITORÍA & HARDWARE</div>
+        
+        <div class="phone-frame">
+          <!-- Hardware buttons resaltados -->
+          <div class="hardware-btn-vol-up" style="background: #000; width: 10px; box-shadow: 0 0 6px #000;"></div>
+          <div class="hardware-btn-vol-down" style="background: #000; width: 10px;"></div>
+          <div class="hardware-btn-power"></div>
+          
+          <div class="hardware-callout" style="top: 130px;">
+            ▲▲ PULSAR VOLUMEN ARRIBA (2x) PARA CONFIRMAR
+          </div>
+          <div class="hardware-callout" style="top: 215px; border-style: dashed;">
+            ▼ PULSAR VOLUMEN ABAJO (1x) PARA CANCELAR
+          </div>
+
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 96%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Confirma tu envío</span>
+            <span class="sketch-pill active" style="background: #000; color: #fff;">SEGURIDAD MANDATORIA</span>
+          </div>
+          <div class="screen-content">
+            <!-- Resumen de Auditoría de 6 Campos -->
+            <div class="sketch-card highlight" style="border: 2px solid #000;">
+              <span style="font-size: 10px; font-weight: 800; color: #666;">DATOS AUDITADOS POR A11Y:</span>
+              <div style="font-size: 11px; display: flex; flex-direction: column; gap: 5px; margin-top: 4px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span>💵 Monto exacto:</span>
+                  <strong>S/ 20.00 PEN</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span>👤 Destinatario titular:</span>
+                  <strong>Marco Aurelio R.</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span>📱 Teléfono auditado:</span>
+                  <strong>993 714 209</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span>🏦 Red de destino:</span>
+                  <strong>Yape (BCP)</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span>🧾 Comisión:</span>
+                  <strong>Gratis (S/ 0.00)</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Locución TTS Completa -->
+            <div class="a11y-bubble" style="font-size: 9.5px;">
+              🔊 <em>"Atención. Verifica en voz alta: Envías 20.00 Soles a Marco Aurelio R, teléfono 9 9 3, 7 1 4, 2 0 9, red Yape. Para autorizar, presiona dos veces seguidas subir volumen. Para cancelar, presiona bajar volumen."</em>
+            </div>
+
+            <!-- Indicador de espera de botón físico -->
+            <div style="border: 2px dashed #000; padding: 12px; border-radius: 8px; text-align: center; background: #fafafa; margin-top: auto;">
+              <div style="font-size: 13px; font-weight: 900;">⏳ ESPERANDO CONFIRMACIÓN FÍSICA</div>
+              <div style="font-size: 10px; color: #555; margin-top: 4px;">
+                Pantalla bloqueada intencionalmente contra toques involuntarios.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-10</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value">Usuario presiona <code>Subir Volumen</code> 2 veces en menos de 1300ms. (O <code>Bajar Volumen</code> para cancelar).</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Si confirma: avanza a <code>[SCR-11] Comprobante</code>. Si cancela: aborta a <code>[SCR-14]</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value"><code>PhysicalConfirmationCoordinator</code> intercepta <code>KeyEvent</code>. Despacha haptic waveform [150ms-80ms-250ms].</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANTALLA 11 -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-11] COMPROBANTE DE ÉXITO ("¡LEMONEASTE!")</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:42</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 96%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Transferencia Exitosa</span>
+            <span class="sketch-pill active">✓ COMPLETADO</span>
+          </div>
+          <div class="screen-content">
+            <div style="text-align: center; padding: 12px 0;">
+              <div style="font-size: 38px;">🎉</div>
+              <h2 style="font-size: 18px; font-weight: 900;">¡Lemoneaste!</h2>
+              <p style="font-size: 11px; color: #555;">Tu dinero llegó a destino de inmediato</p>
+            </div>
+
+            <!-- Ficha Comprobante -->
+            <div class="sketch-card highlight" style="border: 2px solid #000;">
+              <div style="text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 8px;">
+                <span style="font-size: 10px; color: #666;">MONTO ENVIADO</span>
+                <div style="font-size: 26px; font-weight: 900; font-family: var(--mono-font);">
+                  S/ 20.00
+                </div>
+              </div>
+              <div style="font-size: 10.5px; display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
+                <div><strong>Destinatario:</strong> Marco Aurelio R.</div>
+                <div><strong>Celular:</strong> 993 714 209 (Yape)</div>
+                <div><strong>N° de Operación:</strong> <code>#LM-8492041</code></div>
+                <div><strong>Fecha y Hora:</strong> 20/09/2026 - 09:42</div>
+              </div>
+            </div>
+
+            <div class="a11y-bubble">
+              🔊 <em>"¡Transferencia completada con éxito! Has enviado 20 soles a Marco Aurelio R. Operación número 8 4 9 2 0 4 1."</em>
+            </div>
+
+            <div class="haptic-tag">📳 Haptic: Triple vibración de éxito (200ms)</div>
+
+            <div style="margin-top: auto;">
+              <div class="tap-zone" style="height: 44px; border-width: 2px;">
+                <strong>Compartir Comprobante / Salir ▶</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-11</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value">Tap en <code>Compartir Comprobante</code> o comando de voz <code>"Volver al inicio"</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Retorna al Dashboard principal <code>[SCR-04]</code> en estado reposo.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Extracción de datos del recibo con <code>extractReceiptData</code>. Guardado en historial local.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ==========================================================================
+       HOJA 5: ESTADOS DE ERROR Y RECUPERACIÓN GUIADA POR VOZ (SCR-12, SCR-13, SCR-14)
+       ========================================================================== -->
+  <article class="a4-landscape-page" id="sheet-5">
+    <div class="page-header-strip">
+      <span class="flow-title">Flujo 5: Gestión de Errores & Recuperación Guiada con Voz</span>
+      <span class="page-number">HOJA 05 / 05 • FORMATO A4 HORIZONTAL</span>
+    </div>
+
+    <div class="screens-grid">
+      <!-- PANTALLA 12: ERROR DE VOZ -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-12] ERROR: COMANDO NO RECONOCIDO</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 96%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Comando Incompleto</span>
+            <span class="sketch-pill warning">Reintentar</span>
+          </div>
+          <div class="screen-content">
+            <div style="text-align: center; padding: 10px 0;">
+              <div style="font-size: 34px;">❓🎙️</div>
+              <h3 style="font-size: 14px; font-weight: 800;">No pudimos entender el pedido</h3>
+              <p style="font-size: 10.5px; color: #555;">Falta el número de teléfono o el monto</p>
+            </div>
+
+            <div class="sketch-card">
+              <span style="font-size: 10px; font-weight: 800; color: #666;">TEXTO CAPTURADO:</span>
+              <p style="font-size: 12px; font-style: italic; color: #333;">
+                "Pagarle a Juan veinte..."
+              </p>
+              <span style="font-size: 9px; color: #d00;">⚠ Falta número de 9 dígitos o destinatario no registrado en contactos.</span>
+            </div>
+
+            <div class="sketch-card highlight">
+              <span style="font-size: 10px; font-weight: 800;">💡 FORMATO SUGERIDO EN VOZ ALTA:</span>
+              <p style="font-size: 11px; font-weight: 700; color: #000;">
+                "Enviar [monto] al [número de 9 dígitos]"
+              </p>
+            </div>
+
+            <div class="a11y-bubble">
+              🔊 <em>"No reconocí el número telefónico de 9 dígitos. Por favor di: Enviar 20 soles al 9 9 3 7 1 4 2 0 9."</em>
+            </div>
+
+            <div style="margin-top: auto;">
+              <div class="voice-trigger-zone" style="padding: 12px;">
+                <strong>🎤 Presiona para Dictar de Nuevo</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-12</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value">Voz no parseada con regex o error de ruido. Tap en <code>Dictar de Nuevo</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Regresa a <code>[SCR-05] Escucha Activa</code> con prompt de ayuda.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Locución guiada que educa al usuario en la sintaxis óptima del comando.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANTALLA 13: SALDO INSUFICIENTE -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-13] ERROR: SALDO INSUFICIENTE</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 96%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Saldo Insuficiente</span>
+            <span class="sketch-pill active" style="background: #000; color: #fff;">Aviso</span>
+          </div>
+          <div class="screen-content">
+            <div style="text-align: center; padding: 10px 0;">
+              <div style="font-size: 34px;">⚠️💳</div>
+              <h3 style="font-size: 14px; font-weight: 800;">No tienes saldo suficiente</h3>
+              <p style="font-size: 10.5px; color: #555;">El monto excede tus fondos en Lemon</p>
+            </div>
+
+            <div class="sketch-card highlight" style="border: 2px solid #000;">
+              <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Monto solicitado:</span>
+                <strong>S/ 250.00</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 4px;">
+                <span>Tu saldo actual:</span>
+                <strong style="color: #666;">S/ 154.80</strong>
+              </div>
+            </div>
+
+            <div class="a11y-bubble">
+              🔊 <em>"No tienes saldo suficiente en soles para enviar 250 soles. Tu saldo disponible es 154 soles con 80 céntimos."</em>
+            </div>
+
+            <div class="haptic-tag">📳 Haptic: Dos pulsos largos de advertencia</div>
+
+            <div style="display: flex; flex-direction: column; gap: 6px; margin-top: auto;">
+              <div class="tap-zone" style="height: 40px; border-width: 2px;">
+                <strong>Ajustar Monto con la Voz 🎤</strong>
+              </div>
+              <div class="tap-zone" style="height: 40px;">
+                <span>Regresar al Inicio</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-13</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value">Lemon Cash rechaza por saldo o el inspector detecta fondos insuficientes.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Tap en <code>Ajustar Monto</code> pasa a <code>[SCR-09]</code> con monto recalculado.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Lectura precisa del saldo remanente para evitar frustración al usuario ciego.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANTALLA 14: ABORTO POR HARDWARE O TIMEOUT -->
+      <div class="screen-column">
+        <div class="screen-badge-label">[SCR-14] CANCELACIÓN MANUAL / TIMEOUT</div>
+        
+        <div class="phone-frame">
+          <div class="hardware-btn-vol-up"></div>
+          <div class="hardware-btn-vol-down"></div>
+          <div class="hardware-btn-power"></div>
+          <div class="status-bar">
+            <span>09:41</span>
+            <div class="icons"><span>♿</span><span>📶</span><span>🔋 96%</span></div>
+          </div>
+          <div class="app-header">
+            <span class="title">Operación Cancelada</span>
+            <span class="sketch-pill active">SEGURA</span>
+          </div>
+          <div class="screen-content">
+            <div style="text-align: center; padding: 12px 0;">
+              <div style="font-size: 34px;">🛑🛡️</div>
+              <h3 style="font-size: 14px; font-weight: 800;">Transferencia Detenida</h3>
+              <p style="font-size: 10.5px; color: #555;">No se debitó ningún sol de tu cuenta</p>
+            </div>
+
+            <div class="sketch-card">
+              <span style="font-size: 10px; font-weight: 800;">MOTIVO DE LA DETENCIÓN:</span>
+              <p style="font-size: 11px; color: #333; margin-top: 3px;">
+                Cancelado por el usuario mediante botón físico (Bajar Volumen) o tiempo de espera agotado.
+              </p>
+            </div>
+
+            <div class="sketch-card highlight">
+              <span style="font-size: 10px; font-weight: 800;">ESTADO DEL SISTEMA:</span>
+              <p style="font-size: 10.5px; color: #444;">
+                Sesión cerrada con seguridad. El servicio permanece activo y a la espera de un nuevo comando.
+              </p>
+            </div>
+
+            <div class="a11y-bubble">
+              🔊 <em>"Operación cancelada de forma segura por el usuario. No se debitó dinero de tu cuenta Lemon."</em>
+            </div>
+
+            <div class="haptic-tag">📳 Haptic: Vibración extendida de cancelación (500ms)</div>
+
+            <div style="margin-top: auto;">
+              <div class="tap-zone" style="height: 48px; border-width: 2px;">
+                <strong>Volver al Dashboard Principal ▶</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA INFERIOR -->
+        <div class="eval-card">
+          <div class="eval-card-header">
+            <span>FICHA DE EVALUACIÓN UI/UX</span>
+            <code>SCR-14</code>
+          </div>
+          <div class="eval-row">
+            <span class="label">🎯 Disparador / Acción:</span>
+            <span class="value">Pulsación de tecla <code>Bajar Volumen</code> o timeout de conexión de red.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">🔀 Transición:</span>
+            <span class="value">Tap en <code>Volver al Dashboard</code> retorna a <code>[SCR-04]</code>.</span>
+          </div>
+          <div class="eval-row">
+            <span class="label">⚡ Elementos dinámicos:</span>
+            <span class="value">Llamada a <code>stateMachine.abortTransfer()</code>. Limpieza de memoria y reciclado de nodos.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ==========================================================================
+       HOJA 6: PIEZAS DESMONTABLES Y SUPERPOSICIONES RECORTABLES (CUTOUTS)
+       ========================================================================== -->
+  <article class="a4-landscape-page cutout-sheet-container" id="cutouts-section">
+    <div class="page-header-strip">
+      <span class="flow-title">✂️ Superposiciones Recortables (Cutouts & Modals para Facilitador)</span>
+      <span class="page-number">HOJA 06 / 06 • PIEZAS DESMONTABLES</span>
+    </div>
+
+    <p style="font-size: 12px; color: #555; margin-bottom: 20px;">
+      <strong>Instrucciones para Paper Prototyping:</strong> Recorta cada una de estas piezas por la línea punteada. Durante la prueba de usabilidad, superpón la pieza correspondiente sobre el marco del smartphone cuando el usuario ejecute la acción respectiva.
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
+      <!-- RECORTABLE 1: MODAL DIÁLOGO DE ESCUCHA FLOTANTE -->
+      <div class="cutout-item-box">
+        <div class="scissor-label">✂️ RECORTAR [CUT-01]</div>
+        <div class="holding-tab">[ Pestaña superior de agarre para el facilitador ]</div>
+        
+        <div class="modal-cutout">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #000; padding-bottom: 8px;">
+            <div style="font-weight: 900; font-size: 13px;">🎙️ Lemon Voice Assistant</div>
+            <span class="sketch-pill active">Escuchando</span>
+          </div>
+          <div style="text-align: center; padding: 18px 0;">
+            <div style="font-size: 28px; letter-spacing: 5px;"> ▂ ▃ ▅ ▇ ▅ ▃ ▂ </div>
+            <div style="font-size: 12px; font-weight: 800; margin-top: 8px;">
+              "Enviar [Monto] a [Celular] por [Yape/Lemon]"
+            </div>
+            <p style="font-size: 10px; color: #666; margin-top: 4px;">
+              TTS Inclusivo activo en segundo plano (0.92x velocidad)
+            </p>
+          </div>
+          <div class="tap-zone" style="border-width: 1.5px; padding: 6px;">
+            <span>Cancelar Escucha (Tap)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECORTABLE 2: DIÁLOGO DE SELECCIÓN DE BANCO INTEROPERABLE -->
+      <div class="cutout-item-box">
+        <div class="scissor-label">✂️ RECORTAR [CUT-02]</div>
+        <div class="holding-tab">[ Pestaña superior de agarre para el facilitador ]</div>
+
+        <div class="modal-cutout">
+          <div style="font-weight: 800; font-size: 13px; margin-bottom: 10px;">
+            ¿A qué cuenta bancaria enviar el dinero?
+          </div>
+          <p style="font-size: 10px; color: #555; margin-bottom: 10px;">
+            Directorio interoperable CCE detectó 2 cuentas asociadas al 993714209:
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="tap-zone" style="justify-content: space-between; border-style: solid; background: #eee;">
+              <strong>🟣 Yape (Banco de Crédito BCP)</strong>
+              <span class="sketch-pill active">SELECCIONAR</span>
+            </div>
+            <div class="tap-zone" style="justify-content: space-between;">
+              <span>🍋 Billetera Lemon Cash</span>
+              <span>›</span>
+            </div>
+            <div class="tap-zone" style="justify-content: space-between; opacity: 0.5;">
+              <span>🔵 Plin (Interbank / BBVA / Scotiabank)</span>
+              <span>›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECORTABLE 3: BOTTOM SHEET DE CONFIRMACIÓN POR BOTÓN FÍSICO -->
+      <div class="cutout-item-box">
+        <div class="scissor-label">✂️ RECORTAR [CUT-03]</div>
+        <div class="holding-tab">[ Pestaña superior de agarre para el facilitador ]</div>
+
+        <div class="bottom-sheet-cutout">
+          <div style="width: 40px; height: 4px; background: #000; border-radius: 2px; margin: 0 auto 12px auto;"></div>
+          <div style="text-align: center;">
+            <div style="font-size: 26px;">🛡️</div>
+            <h4 style="font-size: 14px; font-weight: 900;">CONFIRMACIÓN FÍSICA OBLIGATORIA</h4>
+            <p style="font-size: 11px; color: #333; margin: 6px 0;">
+              Por tu seguridad, los toques táctiles están deshabilitados.
+            </p>
+          </div>
+          <div style="background: #f4f4f4; border: 1.5px solid #000; padding: 10px; border-radius: 8px; margin: 10px 0; font-size: 11px;">
+            <div>🔊 <strong>Instrucción Verbal:</strong></div>
+            <div style="font-style: italic; margin-top: 2px;">
+              "Presiona Subir Volumen 2 veces seguidas para autorizar los 20 soles."
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 10px; text-align: center;">
+            <div style="border: 1.5px solid #000; padding: 8px; border-radius: 6px; background: #fff;">
+              <strong>▲▲ Subir Vol (2x)</strong><br>Autorizar pago
+            </div>
+            <div style="border: 1.5px dashed #000; padding: 8px; border-radius: 6px; background: #fff;">
+              <strong>▼ Bajar Vol (1x)</strong><br>Cancelar todo
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECORTABLE 4: TOASTS DE TTS Y PERMISO DEL SISTEMA ANDROID -->
+      <div class="cutout-item-box">
+        <div class="scissor-label">✂️ RECORTAR [CUT-04 & CUT-05]</div>
+        <div class="holding-tab">[ Pestaña superior de agarre para el facilitador ]</div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <!-- Toast TTS -->
+          <div class="toast-cutout">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 16px;">🔊</span>
+              <span>TTS: "Autenticando clave de acceso..."</span>
+            </div>
+            <span style="font-size: 9px; font-family: var(--mono-font); border: 1px solid #fff; padding: 1px 4px; border-radius: 3px;">0.92x</span>
+          </div>
+
+          <!-- Diálogo Nativo de Permiso Android -->
+          <div class="modal-cutout" style="padding: 12px;">
+            <div style="font-size: 12px; font-weight: 800; margin-bottom: 4px;">
+              ¿Permitir que Lemon Asistente grabe audio?
+            </div>
+            <p style="font-size: 10px; color: #555; margin-bottom: 8px;">
+              Necesario para el reconocimiento offline de comandos de transferencia.
+            </p>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; font-size: 11px; font-weight: 800;">
+              <span style="padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px;">No permitir</span>
+              <span style="padding: 4px 8px; background: #000; color: #fff; border-radius: 4px;">Mientras la app esté en uso</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+</body>
+</html>
