@@ -5,11 +5,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
+import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -21,9 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.a11y.lemonassistant.LemonAssistantApp
 import com.a11y.lemonassistant.audio.InclusiveTtsManager
@@ -38,12 +42,17 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var tts: InclusiveTtsManager
     private var voiceEngine: VoiceCommandEngine? = null
+    private var isDictatingPin = false
 
     private val recordAudioPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            startVoiceRecognition()
+            if (isDictatingPin) {
+                startPinVoiceDictation()
+            } else {
+                startVoiceRecognition()
+            }
         } else {
             tts.speakUrgent("Se requiere permiso de micrófono para usar comandos de voz.")
         }
@@ -60,6 +69,11 @@ class MainActivity : ComponentActivity() {
                         startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                     },
                     onTriggerVoiceTransfer = {
+                        isDictatingPin = false
+                        checkAndRequestAudioPermission()
+                    },
+                    onTriggerDictatePin = {
+                        isDictatingPin = true
                         checkAndRequestAudioPermission()
                     },
                     onTriggerQuickTest = { phone, amount ->
@@ -73,9 +87,52 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Guía por voz automática al entrar a la aplicación para usuarios ciegos
+        window.decorView.postDelayed({
+            announceAppStatus()
+        }, 800)
+    }
+
+    private fun announceAppStatus() {
+        val pin = LemonAssistantApp.instance.securePinStorage.getPin()
+        val isServiceRunning = LemonA11yTransferService.isRunning
+
+        if (!isServiceRunning) {
+            tts.speakUrgent("Atención: El servicio de accesibilidad de Lemon Asistente está inactivo. Toca la pantalla para ir a Ajustes y activarlo.")
+        } else if (pin.isNullOrBlank()) {
+            tts.speakUrgent("Bienvenido a Lemon Asistente. Aún no has configurado tu clave de 6 dígitos. Presiona cualquier botón de volumen para dictar tu PIN.")
+        } else {
+            tts.speakUrgent("Lemon Asistente listo. Para transferir por voz, presiona cualquier botón físico de volumen, o toca la pantalla.")
+        }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Disparador de hardware físico para personas con discapacidad visual:
+        // Presionar subir o bajar volumen en la pantalla principal activa la voz sin buscar botones en pantalla
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            val pin = LemonAssistantApp.instance.securePinStorage.getPin()
+            if (pin.isNullOrBlank()) {
+                tts.speakUrgent("Dicta los 6 dígitos de tu clave de Lemon Cash...")
+                isDictatingPin = true
+                checkAndRequestAudioPermission()
+            } else {
+                isDictatingPin = false
+                checkAndRequestAudioPermission()
+            }
+            return true // Consumir evento para no alterar el volumen multimedia
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
     private fun checkAndRequestAudioPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-            startVoiceRecognition()
+            if (isDictatingPin) {
+                startPinVoiceDictation()
+            } else {
+                startVoiceRecognition()
+            }
         } else {
             recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
@@ -84,7 +141,7 @@ class MainActivity : ComponentActivity() {
     private fun startVoiceRecognition() {
         val pin = LemonAssistantApp.instance.securePinStorage.getPin()
         if (pin.isNullOrBlank()) {
-            tts.speakUrgent("Por favor, ingresa y guarda tu PIN de Lemon Cash primero en la pantalla principal.")
+            tts.speakUrgent("Por favor, guarda tu PIN de Lemon Cash primero. Puedes dictarlo presionando la tecla de volumen.")
             Toast.makeText(this, "Guarda tu PIN primero", Toast.LENGTH_SHORT).show()
             return
         }
@@ -100,6 +157,22 @@ class MainActivity : ComponentActivity() {
             }
         )
         voiceEngine?.startListening(pin)
+    }
+
+    private fun startPinVoiceDictation() {
+        tts.speakUrgent("Dicta tu PIN de 6 dígitos...")
+        voiceEngine = VoiceCommandEngine(
+            context = this,
+            onParamsExtracted = {},
+            onError = { err ->
+                tts.speakUrgent(err)
+            }
+        )
+        voiceEngine?.startListeningForPin { pin ->
+            LemonAssistantApp.instance.securePinStorage.savePin(pin)
+            tts.speakUrgent("PIN guardado de forma segura en el almacenamiento cifrado. Ahora presiona cualquier tecla de volumen para iniciar una transferencia por voz.")
+            Toast.makeText(this, "PIN guardado exitosamente", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun executeTransfer(phone: String, amount: String) {
@@ -164,6 +237,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(
     onOpenAccessibilitySettings: () -> Unit,
     onTriggerVoiceTransfer: () -> Unit,
+    onTriggerDictatePin: () -> Unit,
     onTriggerQuickTest: (phone: String, amount: String) -> Unit,
     onSpeak: (String) -> Unit
 ) {
@@ -182,46 +256,90 @@ fun MainScreen(
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
-            .padding(20.dp)
+            .padding(16.dp)
             .verticalScroll(scrollState),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "Lemon Asistente A11y",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.semantics { contentDescription = "Título: Lemon Asistente Accesible" }
+            modifier = Modifier.semantics { contentDescription = "Título principal: Lemon Asistente Accesible" }
         )
+
+        // BOTÓN PRINCIPAL GIGANTE PARA CIEGOS: TRANSFERIR POR VOZ
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(160.dp)
+                .clickable { onTriggerVoiceTransfer() }
+                .semantics {
+                    contentDescription = "Botón principal de alta accesibilidad: Iniciar transferencia por voz. Presiona aquí o presiona cualquier botón de volumen de tu teléfono para hablar."
+                }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "🎤", fontSize = 42.sp)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "TRANSFERIR POR VOZ",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "Toca aquí o pulsa cualquier botón de volumen",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
+            }
+        }
 
         // Estado del Servicio de Accesibilidad
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = if (isServiceRunning) MaterialTheme.colorScheme.surface else WarningAmber.copy(alpha = 0.2f)
             ),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics {
+                    contentDescription = if (isServiceRunning)
+                        "Servicio de Accesibilidad activo. El asistente está listo."
+                    else
+                        "Servicio de Accesibilidad inactivo. Es necesario activarlo en Ajustes."
+                }
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = if (isServiceRunning) "✓ Servicio de Accesibilidad: ACTIVO" else "⚠ Servicio de Accesibilidad: INACTIVO",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = if (isServiceRunning) LemonGreen else WarningAmber
+                    text = if (isServiceRunning) "✓ Servicio Accesibilidad: ACTIVO" else "⚠ Servicio Accesibilidad: INACTIVO",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (isServiceRunning) LemonGreen else WarningAmber,
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = if (isServiceRunning)
-                        "El asistente está listo para interactuar con Lemon Cash."
+                        "Listo para navegar de forma autónoma en Lemon Cash."
                     else
-                        "Es indispensable activar el servicio en los Ajustes del sistema para permitir la asistencia automatizada.",
-                    style = MaterialTheme.typography.bodyLarge
+                        "Toca el botón abajo para activarlo en los Ajustes del sistema.",
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 if (!isServiceRunning) {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Button(
                         onClick = onOpenAccessibilitySettings,
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
+                            .height(52.dp)
                     ) {
                         Text("Activar en Ajustes de Accesibilidad", style = MaterialTheme.typography.labelLarge)
                     }
@@ -229,7 +347,7 @@ fun MainScreen(
             }
         }
 
-        // Configuración segura de PIN
+        // Configuración segura de PIN (Manual o Dictado por Voz)
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier.fillMaxWidth()
@@ -237,16 +355,39 @@ fun MainScreen(
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = "PIN de Acceso a Lemon Cash",
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = if (secureStorage.hasPin()) "✓ Tu PIN está guardado y cifrado" else "⚠ No has guardado tu PIN todavía",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (secureStorage.hasPin()) LemonGreen else WarningAmber
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Botón para dictar PIN por voz (ideal para personas ciegas)
+                OutlinedButton(
+                    onClick = onTriggerDictatePin,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .semantics { contentDescription = "Dictar clave de 6 dígitos por voz" }
+                ) {
+                    Text("🎙️ Dictar PIN por Voz")
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
                 OutlinedTextField(
                     value = pinInput,
                     onValueChange = { if (it.length <= 6 && it.all { c -> c.isDigit() }) pinInput = it },
-                    label = { Text("PIN de 6 dígitos") },
+                    label = { Text("O escribe tu PIN de 6 dígitos") },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = "Campo de texto para clave numérica de 6 dígitos" }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
@@ -266,32 +407,16 @@ fun MainScreen(
             }
         }
 
-        // Disparador de Transferencia por Voz o Prueba
+        // Prueba Manual / Rápida Determinista
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    text = "Acciones de Transferencia",
-                    style = MaterialTheme.typography.titleLarge
-                )
-
-                Button(
-                    onClick = onTriggerVoiceTransfer,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(64.dp)
-                ) {
-                    Text("🎤 Iniciar Transferencia por Voz", style = MaterialTheme.typography.labelLarge)
-                }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                Text(
-                    text = "Prueba Rápida Determinista:",
-                    style = MaterialTheme.typography.bodyLarge
+                    text = "Prueba Manual por Teclado:",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
 
                 OutlinedTextField(
@@ -299,45 +424,52 @@ fun MainScreen(
                     onValueChange = { recipientPhone = it },
                     label = { Text("Teléfono de Destino (9 dígitos)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = "Teléfono de destino de 9 dígitos" }
                 )
 
                 OutlinedTextField(
                     value = transferAmount,
                     onValueChange = { transferAmount = it },
-                    label = { Text("Monto (Soles)") },
+                    label = { Text("Monto en Soles (ej: 0.10, 5, 20)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = "Monto en soles a transferir" }
                 )
 
                 Button(
                     onClick = { onTriggerQuickTest(recipientPhone, transferAmount) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
+                        .height(52.dp)
+                        .semantics { contentDescription = "Ejecutar asistente automatizado con Lemon Cash" }
                 ) {
                     Text("Ejecutar Asistente con Lemon Cash", style = MaterialTheme.typography.labelLarge)
                 }
             }
         }
 
-        // Panel de instrucciones de seguridad física
+        // Panel de instrucciones de hardware
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Seguridad Física (Human-in-the-Loop)",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = LemonGreen
+                    text = "Control por Teclas Físicas de Volumen",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = LemonGreen,
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Durante la pantalla de confirmación final:\n" +
-                            "• Subir Volumen (2 veces): Autoriza y confirma el pago.\n" +
-                            "• Bajar Volumen (1 vez): Cancela inmediatamente la operación.",
-                    style = MaterialTheme.typography.bodyLarge
+                    text = "• En la app: Presiona Subir o Bajar Volumen para hablar inmediatamente.\n" +
+                            "• En confirmación final:\n" +
+                            "  - Subir Volumen (2 veces): Autoriza y emite el pago.\n" +
+                            "  - Bajar Volumen (1 vez): Cancela sin debitar dinero.",
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
