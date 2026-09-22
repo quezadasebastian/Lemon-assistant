@@ -29,15 +29,18 @@ class TransferStateMachine(
         private set
 
     private var isExecutingAction = false
+    private var hasEnteredAmount = false
 
     fun startTransfer(params: TransferParams) {
         currentParams = params
+        hasEnteredAmount = false
         currentState = TransferState.AuthenticatingPin
         tts.speakUrgent("Iniciando asistente de transferencia accesible en Lemon Cash.")
     }
 
     fun abortTransfer(reason: String) {
         currentState = TransferState.Failed(reason)
+        hasEnteredAmount = false
         physicalCoordinator.isAwaitingConfirmation = false
         tts.speakUrgent("Transferencia detenida: $reason")
     }
@@ -156,31 +159,47 @@ class TransferStateMachine(
                 }
 
                 is TransferState.ConfiguringAmount -> {
-                    if (detected == DetectedScreen.AMOUNT_ENTRY) {
+                    if (detected == DetectedScreen.AMOUNT_ENTRY && !hasEnteredAmount) {
                         isExecutingAction = true
+                        hasEnteredAmount = true
                         tts.speak("Configurando monto de ${params.amount} soles.")
 
-                        // Si el monto tiene decimales como 0.10, pulsar '.', '1', '0'
-                        val sequence = if (params.amount.startsWith("0.")) {
-                            params.amount.substring(1) // ".10"
-                        } else {
-                            params.amount
-                        }
-
+                        val sequence = buildKeystrokeSequence(params.amount)
                         keypadNavigator.enterNumericSequence(root, sequence)
-                        delay(400)
+                        delay(500)
 
                         val continueButton = actionHelper.findFirstByTextOrDesc(root, "Continuar")
-                        val clicked = actionHelper.performSmartClick(continueButton)
+                        actionHelper.performSmartClick(continueButton)
                         continueButton?.recycle()
                         isExecutingAction = false
 
-                        if (clicked) {
-                            // Avanza hacia la pantalla de verificación
-                            delay(600)
-                        }
+                        currentState = TransferState.SubmittingAmount
                     } else if (detected == DetectedScreen.CONFIRMATION_AUDIT) {
                         // Safety Gate 3: Hard Stop mandatorio
+                        val summary = screenInspector.extractAuditSummary(
+                            root,
+                            params.recipientPhone,
+                            params.amount
+                        )
+                        currentState = TransferState.AwaitingUserConfirmation(summary)
+                        physicalCoordinator.isAwaitingConfirmation = true
+                        tts.speakTransferAuditSummary(summary)
+                    }
+                }
+
+                is TransferState.SubmittingAmount -> {
+                    if (detected == DetectedScreen.AMOUNT_ENTRY) {
+                        // El monto ya fue digitado exactamente una vez.
+                        // Solo reintentamos hacer clic en Continuar si la pantalla no avanzó
+                        if (!isExecutingAction) {
+                            isExecutingAction = true
+                            delay(600)
+                            val continueButton = actionHelper.findFirstByTextOrDesc(root, "Continuar")
+                            actionHelper.performSmartClick(continueButton)
+                            continueButton?.recycle()
+                            isExecutingAction = false
+                        }
+                    } else if (detected == DetectedScreen.CONFIRMATION_AUDIT) {
                         val summary = screenInspector.extractAuditSummary(
                             root,
                             params.recipientPhone,
@@ -225,5 +244,21 @@ class TransferStateMachine(
             actionHelper.performSmartClick(confirmBtn)
             confirmBtn?.recycle()
         }
+    }
+
+    fun buildKeystrokeSequence(amountStr: String): String {
+        val clean = amountStr.trim().replace(',', '.')
+        val doubleVal = clean.toDoubleOrNull() ?: return clean
+
+        // Si es un número entero exacto (ej. 5, 5.0, 5.00, 10, 20.00), enviamos solo el entero ("5", "10", "20")
+        if (doubleVal % 1.0 == 0.0) {
+            return doubleVal.toLong().toString()
+        }
+
+        // Si tiene decimales reales (ej. 0.1, 0.10, 0.14, 88.88), desglosar en parte entera, punto y decimales
+        val parts = clean.split('.')
+        val integerPart = parts[0].ifEmpty { "0" }
+        val decimalPart = if (parts.size > 1) parts[1] else ""
+        return "$integerPart.$decimalPart"
     }
 }

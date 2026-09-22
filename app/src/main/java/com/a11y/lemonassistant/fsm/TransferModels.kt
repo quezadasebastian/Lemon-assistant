@@ -35,6 +35,7 @@ sealed class TransferState {
     data class EnteringRecipient(val phone: String) : TransferState()
     data class SelectingBank(val targetBank: String) : TransferState()
     data class ConfiguringAmount(val amount: String) : TransferState()
+    object SubmittingAmount : TransferState()
     data class AwaitingUserConfirmation(val summary: TransferSummary) : TransferState()
     object ExecutingFinalConfirmation : TransferState()
     data class Completed(val receipt: ReceiptData) : TransferState()

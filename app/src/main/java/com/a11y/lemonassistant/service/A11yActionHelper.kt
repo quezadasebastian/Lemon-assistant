@@ -36,21 +36,20 @@ class A11yActionHelper(private val service: AccessibilityService) {
         return clickCentroid(targetNode)
     }
 
+    fun dispatchGestureClick(x: Float, y: Float): Boolean {
+        val path = Path().apply {
+            moveTo(x, y)
+        }
+        val stroke = GestureDescription.StrokeDescription(path, 0, 50)
+        val gesture = GestureDescription.Builder().addStroke(stroke).build()
+        return service.dispatchGesture(gesture, null, null)
+    }
+
     fun clickCentroid(node: AccessibilityNodeInfo): Boolean {
         val rect = Rect()
         node.getBoundsInScreen(rect)
         if (rect.isEmpty) return false
-
-        val centerX = rect.centerX().toFloat()
-        val centerY = rect.centerY().toFloat()
-
-        val path = Path().apply {
-            moveTo(centerX, centerY)
-        }
-        val stroke = GestureDescription.StrokeDescription(path, 0, 50)
-        val gesture = GestureDescription.Builder().addStroke(stroke).build()
-
-        return service.dispatchGesture(gesture, null, null)
+        return dispatchGestureClick(rect.centerX().toFloat(), rect.centerY().toFloat())
     }
 
     fun setTextSafely(node: AccessibilityNodeInfo?, text: String): Boolean {
@@ -91,5 +90,9 @@ class A11yActionHelper(private val service: AccessibilityService) {
             (nodeText != null && nodeText.contains(textQuery, ignoreCase = ignoreCase)) ||
                     (nodeDesc != null && nodeDesc.contains(textQuery, ignoreCase = ignoreCase))
         }
+    }
+
+    fun getRootInActiveWindow(): AccessibilityNodeInfo? {
+        return service.rootInActiveWindow
     }
 }
