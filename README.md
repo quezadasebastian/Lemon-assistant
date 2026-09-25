@@ -46,7 +46,3 @@ flowchart TD
    - Guardar el PIN cifrado de 6 dígitos desde la interfaz principal de la aplicación.
 
 ---
-
-## 🎨 Prototipo en Papel (Paper Prototyping)
-
-El repositorio incluye el archivo [`paper_prototype.html`](paper_prototype.html), una maqueta completa en formato A4 lista para imprimir con wireframes, guías de evaluación para pruebas de usabilidad y piezas recortables (*cutouts*).
